@@ -86,14 +86,36 @@ docker save -o images/frontend.tar   ongc-rag-frontend:latest
 docker save -o images/ingestion.tar  ongc-rag-ingestion:latest
 ```
 
-Now copy the three things from Section 2 to the server.
+### Transfer to the server over SSH
+
+From the build machine, copy the three things to the server with `rsync` over SSH
+(`rsync -P` shows progress and can resume if the connection drops — important for
+the ~6 GB `models/` and ~10 GB `images/`). Replace `user@server` with your login
+and `/opt/software-guide` with wherever you want it on the server.
+
+```bash
+# 1. project files (small)
+rsync -avP --exclude models --exclude images ./  user@server:/opt/software-guide/
+
+# 2. the model weights (~6 GB)
+rsync -avP models/   user@server:/opt/software-guide/models/
+
+# 3. the docker image tarballs (~10 GB)
+rsync -avP images/   user@server:/opt/software-guide/images/
+```
+
+> No `rsync` on the server? Use `scp -r` instead, e.g.
+> `scp -r models images user@server:/opt/software-guide/` (no resume on drop).
 
 ---
 
 ## 4. Part B — On the air-gapped server (deploy)
 
+SSH into the server, then run everything there:
+
 ```bash
-cd software-guide          # the folder you copied over (with models/ and images/ inside)
+ssh user@server
+cd /opt/software-guide      # the folder you copied over (with models/ and images/ inside)
 
 # 1. Load the 5 Docker images (no internet needed)
 for f in images/*.tar; do docker load -i "$f"; done
@@ -139,6 +161,15 @@ Open a browser on (or pointed at) the server:
 
 ```
 http://localhost:8080        # or  http://<server-ip>:8080
+```
+
+**Headless server (SSH only, no browser on it)?** Forward the ports to your own
+laptop over SSH, then open the browser locally:
+
+```bash
+# run on your laptop; keep this session open
+ssh -L 8080:localhost:8080 -L 8000:localhost:8000 user@server
+# now open http://localhost:8080 in YOUR laptop's browser
 ```
 
 Type a question, read the streamed answer + the workflow diagram.
