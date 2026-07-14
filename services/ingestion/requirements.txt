@@ -1,0 +1,6 @@
+unstructured[all-docs]
+langchain
+langchain-classic
+langchain-ollama
+langchain-chroma
+chromadb

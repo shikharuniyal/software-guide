@@ -1,0 +1,95 @@
+# Start everything:   docker compose up -d --build
+# Ingest a manual:    docker compose run --rm ingestion /data/manuals/<your-file>.pdf
+# Open the UI:        http://localhost:${WEB_PORT}   (default 8080)
+#
+# Configurable values are read from a local .env file (copy .env.example -> .env).
+# If no .env exists, the defaults after ":-" below are used.
+
+services:
+  # ---- the only GPU service: serves the VLM + the embedding model ----
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ./models/ollama:/root/.ollama/models   # VENDORED weights (qwen2.5vl + nomic), offline
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1               # keep models resident in memory
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all                    # all -> uses the 1 GPU now, N later
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # ---- vector database (the searchable index) ----
+  chroma:
+    image: chromadb/chroma:latest
+    volumes:
+      - chroma_data:/data
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/data
+      - ANONYMIZED_TELEMETRY=FALSE
+    ports:
+      - "${CHROMA_PORT:-8001}:8000"
+    restart: unless-stopped
+
+  # ---- query backend: the RAG chain (lightweight, CPU) ----
+  api:
+    image: ongc-rag-api:latest        # so an air-gapped server can `docker load` + run without building
+    build: ./services/api
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5vl:7b}
+      - EMBED_MODEL=${EMBED_MODEL:-nomic-embed-text}
+      - RAG_STORE=/data/rag_store
+    volumes:
+      - rag_store:/data/rag_store           # docstore.pkl + extracted_images
+    depends_on:
+      - ollama
+      - chroma
+    ports:
+      - "${API_PORT:-8000}:8080"
+    restart: unless-stopped
+
+  # web page with a question box
+  frontend:
+    image: ongc-rag-frontend:latest
+    build: ./services/frontend
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+  # builds the index from a PDF (admin-only, run on demand)
+  ingestion:
+    image: ongc-rag-ingestion:latest
+    build: ./services/ingestion
+    profiles: ["ingest"]
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5vl:7b}
+      - EMBED_MODEL=${EMBED_MODEL:-nomic-embed-text}
+      - RAG_STORE=/data/rag_store
+      - HF_HOME=/models
+      - HF_HUB_OFFLINE=1
+      - TRANSFORMERS_OFFLINE=1
+    volumes:
+      - rag_store:/data/rag_store
+      - ./models/hf:/models
+      - ./manuals:/data/manuals              # drop admin PDFs here
+    depends_on:
+      - ollama
+      - chroma
+
+volumes:
+  chroma_data:
+  rag_store:

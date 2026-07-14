@@ -1,0 +1,2 @@
+# Drop admin PDF manuals here, then run:
+#   docker compose run --rm ingestion /data/manuals/<file>.pdf

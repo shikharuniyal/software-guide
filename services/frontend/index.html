@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask the Manual</title>
+<style>
+  :root{
+    --ink:#0c0d0f;
+    --panel:#141518;
+    --panel-2:#1b1c20;
+    --bone:#e9e6dd;
+    --bone-dim:#9a978d;
+    --brass:#b8935c;
+    --brass-dim:#6f5c3e;
+    --glow:#6fe3d8;
+    --line:#2c2d31;
+    --danger:#c9695a;
+    --radius:2px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    height:100%;
+  }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 50% -10%, #1a1b1e 0%, var(--ink) 55%);
+    color:var(--bone);
+    font-family:'Courier New', ui-monospace, monospace;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:clamp(20px, 4vw, 56px) clamp(16px, 5vw, 40px) 48px;
+  }
+
+  .frame{
+    width:100%;
+    max-width:920px;
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    flex:1;
+  }
+
+  /* ---------- HEADER : entablature ---------- */
+  .entablature{
+    position:relative;
+    padding:0 0 22px;
+    margin-bottom:28px;
+  }
+
+  .eyebrow{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-style:italic;
+    font-size:12px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 10px;
+  }
+
+  h1{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-weight:400;
+    font-size:clamp(30px, 5vw, 46px);
+    letter-spacing:.06em;
+    margin:0;
+    color:var(--bone);
+    text-transform:uppercase;
+  }
+
+  h1 span{
+    color:var(--brass);
+    font-style:italic;
+  }
+
+  .dentils{
+    display:flex;
+    gap:6px;
+    margin-top:18px;
+  }
+
+  .dentils i{
+    display:block;
+    width:14px;
+    height:8px;
+    background:var(--line);
+  }
+
+  .dentils i.lit{ background:var(--brass); }
+
+  .entablature::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:2px;
+    background:linear-gradient(90deg, var(--brass) 0%, var(--line) 40%, var(--line) 60%, var(--brass) 100%);
+  }
+
+  /* ---------- INPUT : inscription prompt ---------- */
+  .prompt-block{
+    position:relative;
+    margin-bottom:22px;
+  }
+
+  .prompt-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--bone-dim);
+    margin-bottom:8px;
+  }
+
+  .prompt-label .tag{
+    color:var(--brass);
+  }
+
+  .input-shell{
+    position:relative;
+    border:1px solid var(--line);
+    background:var(--panel);
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+
+  .input-shell:focus-within{
+    border-color:var(--brass);
+    box-shadow:0 0 0 1px var(--brass-dim), 0 0 24px -8px var(--brass-dim);
+  }
+
+  .input-shell::before{
+    content:"›";
+    position:absolute;
+    top:16px; left:16px;
+    color:var(--brass);
+    font-size:18px;
+    font-weight:bold;
+    pointer-events:none;
+  }
+
+  textarea{
+    width:100%;
+    min-height:92px;
+    resize:vertical;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--bone);
+    font-family:inherit;
+    font-size:15px;
+    line-height:1.6;
+    padding:14px 16px 14px 38px;
+  }
+
+  textarea::placeholder{
+    color:var(--bone-dim);
+    font-style:italic;
+  }
+
+  .controls{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:14px;
+    margin-top:12px;
+  }
+
+  .hint{
+    font-size:11px;
+    color:var(--bone-dim);
+    letter-spacing:.04em;
+  }
+
+  button{
+    position:relative;
+    padding:11px 28px;
+    font-family:inherit;
+    font-size:13px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:var(--brass);
+    border:1px solid var(--brass);
+    cursor:pointer;
+    border-radius:var(--radius);
+    transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
+  }
+
+  button:hover{
+    background:var(--glow);
+    border-color:var(--glow);
+    box-shadow:0 0 22px -6px var(--glow);
+  }
+
+  button:active{ transform:translateY(1px); }
+
+  button:disabled{
+    background:var(--panel-2);
+    border-color:var(--line);
+    color:var(--bone-dim);
+    cursor:progress;
+    box-shadow:none;
+  }
+
+  /* ---------- OUTPUT : tablet ---------- */
+  .tablet{
+    border:1px solid var(--line);
+    background:var(--panel);
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    min-height:0;
+  }
+
+  .tablet-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:11px 16px;
+    border-bottom:1px solid var(--line);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--bone-dim);
+  }
+
+  .status-dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--line);
+    margin-right:8px;
+    vertical-align:middle;
+  }
+
+  .status-dot.live{
+    background:var(--glow);
+    box-shadow:0 0 8px 1px var(--glow);
+  }
+
+  #out{
+    padding:20px 22px;
+    white-space:pre-wrap;
+    font-size:15px;
+    line-height:1.75;
+    color:var(--bone);
+    min-height:140px;
+  }
+
+  #out.empty{ color:var(--bone-dim); font-style:italic; }
+
+  /* ---------- GRAPH PANEL ---------- */
+  #graph-container{
+    display:none;
+    border-top:1px solid var(--line);
+    padding:24px;
+    text-align:center;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 23px, var(--line) 23px, transparent 24px);
+    background-color:var(--panel-2);
+  }
+
+  #graph-container svg{
+    max-width:100%;
+    height:auto;
+    filter: drop-shadow(0 0 10px rgba(111,227,216,.08));
+  }
+
+  footer{
+    margin-top:20px;
+    text-align:center;
+    font-size:10px;
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color:var(--line);
+  }
+
+  @media (max-width:560px){
+    h1{ font-size:26px; }
+    .controls{ flex-direction:column-reverse; align-items:stretch; gap:10px; }
+    button{ width:100%; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{ transition:none !important; }
+  }
+</style>
+
+<!-- Use Mermaid v9 -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<div class="frame">
+
+  <div class="entablature">
+    <p class="eyebrow">Manuscript · Terminal · No. I</p>
+    <h1>Ask the <span>Manual</span></h1>
+    <div class="dentils" id="dentils"></div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">
+      <span>Query <span class="tag">/ input</span></span>
+      <span class="hint">⌘ + Enter to send</span>
+    </div>
+    <div class="input-shell">
+      <textarea id="q" placeholder="What do you want to do in the software?"></textarea>
+    </div>
+    <div class="controls">
+      <button onclick="ask()" id="askBtn">Ask</button>
+    </div>
+  </div>
+
+  <div class="tablet">
+    <div class="tablet-head">
+      <span><span class="status-dot" id="statusDot"></span>Response</span>
+      <span id="statusText">Idle</span>
+    </div>
+    <div id="out" class="empty">The answer will appear here...</div>
+    <div id="graph-container"></div>
+  </div>
+
+  <footer>Ask the Manual — Reference Interface</footer>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+
+  // decorative dentil row
+  (function(){
+    const row = document.getElementById('dentils');
+    const total = 28;
+    for(let i=0;i<total;i++){
+      const el = document.createElement('i');
+      if(i % 4 === 0) el.classList.add('lit');
+      row.appendChild(el);
+    }
+  })();
+
+  function setStatus(state, label){
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    dot.classList.toggle('live', state === 'live');
+    text.textContent = label;
+  }
+
+  async function ask() {
+    const q = document.getElementById("q");
+    const out = document.getElementById("out");
+    const graphBox = document.getElementById("graph-container");
+    const btn = document.getElementById("askBtn");
+
+    const question = q.value.trim();
+    if (!question) return;
+
+    btn.disabled = true;
+    btn.textContent = "Working…";
+    out.classList.remove("empty");
+    out.textContent = "Loading... Please wait.";
+    graphBox.style.display = "none";
+    graphBox.innerHTML = "";
+    setStatus('live', 'Streaming');
+
+    let fullText = "";
+
+    try {
+      const response = await fetch("/api/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: question })
+      });
+
+      out.textContent = "";
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        out.textContent += chunk;
+        fullText += chunk;
+      }
+
+      // --- DRAW THE GRAPH ---
+      const mermaidRegex = /```[a-zA-Z]*\n([\s\S]*?)```/;
+      const match = fullText.match(mermaidRegex);
+
+      if (match && match[1]) {
+        let mermaidCode = match[1].trim();
+
+        // strip out double quotes so mermaid dosent crash
+        mermaidCode = mermaidCode.replace(/"/g, "'");
+
+        out.textContent = fullText.replace(mermaidRegex, "\n[Graphical Flowchart Generated Below]\n");
+
+        graphBox.style.display = "block";
+        mermaid.render('flowchart', mermaidCode, function(svgCode) {
+          graphBox.innerHTML = svgCode;
+        });
+      }
+
+      setStatus('idle', 'Complete');
+
+    } catch (e) {
+      out.textContent = "Error: " + e;
+      setStatus('idle', 'Error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Ask";
+    }
+  }
+
+  document.getElementById('q').addEventListener('keydown', function(e){
+    if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
+      ask();
+    }
+  });
+</script>
+
+</body>
+</html>

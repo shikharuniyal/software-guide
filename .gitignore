@@ -1,0 +1,16 @@
+# Vendored model weights (~6 GB) — transfer via scp/rsync/USB, NOT git.
+models/
+
+# Your local, filled-in config (keep .env.example in git; keep .env out).
+.env
+
+# Admin PDFs
+manuals/*.pdf
+
+# Air-gapped image tarballs produced by `docker save`
+images/
+*.tar
+
+# Local runtime artifacts
+*.pyc
+__pycache__/
