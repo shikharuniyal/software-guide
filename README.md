@@ -10,6 +10,14 @@ Everything runs on your own hardware — one local AI model, no cloud APIs, no
 internet needed at runtime. Only the `ollama` service uses a GPU (~7 GB VRAM);
 everything else is CPU.
 
+> **Plug-and-play.** It runs on the built-in defaults with zero config edits.
+> The commands below work as-is. The **only** things you ever change are:
+> 1. your **PDF filename** in the ingest command (Part C), and
+> 2. for the desktop guide from another PC, the **server IP** (Part E).
+>
+> Everything else — model names, ports, image names — already has working
+> defaults. Editing `.env` is optional (see [Configuration](#9-configuration)).
+
 ---
 
 ## Contents
@@ -90,12 +98,12 @@ cd software-guide          # the folder you copied over (with models/ and images
 # 1. Load the 5 Docker images (no internet needed)
 for f in images/*.tar; do docker load -i "$f"; done
 
-# 2. (Optional) set your config
-cp .env.example .env        # then edit .env if you want to change ports/model
-
-# 3. Start the stack — NOTE: no --build, since images are already loaded
+# 2. Start the stack — NOTE: no --build, since images are already loaded
 docker compose up -d
 ```
+
+That's it — no config to edit. (Only if you *want* to change a port or model:
+`cp .env.example .env` and edit it, then re-run `docker compose up -d`.)
 
 Check it's alive:
 ```bash
@@ -107,14 +115,15 @@ curl http://localhost:8000/health      # -> {"status":"ok"}
 
 ## 5. Part C — Load a manual
 
-Do this once per manual (admin task).
+Do this once per manual (admin task). **The only value you change here is your
+PDF's filename** — shown as `Word_manual.pdf` below.
 
 ```bash
 # 1. Put the PDF in the manuals folder
-cp /path/to/YourManual.pdf manuals/
+cp /path/to/Word_manual.pdf manuals/
 
-# 2. Build the search index from it
-docker compose run --rm ingestion /data/manuals/YourManual.pdf
+# 2. Build the search index from it  (<-- change the filename to yours)
+docker compose run --rm ingestion /data/manuals/Word_manual.pdf
 
 # 3. Tell the API to load the new index
 curl -X POST http://localhost:8000/admin/reload

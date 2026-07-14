@@ -1,6 +1,6 @@
 # Start everything:   docker compose up -d --build
-# Ingest a manual:    docker compose run --rm ingestion /data/manuals/<your-file>.pdf
-# Open the UI:        http://localhost:${WEB_PORT}   (default 8080)
+# Ingest a manual:    docker compose run --rm ingestion /data/manuals/Word_manual.pdf
+# Open the UI:        http://localhost:8080
 #
 # Configurable values are read from a local .env file (copy .env.example -> .env).
 # If no .env exists, the defaults after ":-" below are used.
