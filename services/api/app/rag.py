@@ -46,9 +46,7 @@ def extract_json(text_response):
         return {"error": "Failed to generate JSON", "raw": text_response}
 
 
-# ==========================================
-# CHAIN 1: THE WEB CHATBOT (Phase 1)
-# ==========================================
+#WEB CHATBOT CHAIN
 def build_prompt(kwargs):
     docs_by_type = kwargs["context"]
     user_question = kwargs["question"]
@@ -92,10 +90,7 @@ def build_chain(retriever):
         | StrOutputParser()
     )
 
-
-# ==========================================
-# CHAIN 2: THE DESKTOP PLANNER (Tier 3)
-# ==========================================
+#DESKTOP PLANNER
 PLAN_INSTR = (
     "You are a visual agent. Find the SINGLE NEXT STEP to achieve the user's goal based on the manual.\n"
     "Do not repeat the 'LAST ACTION TAKEN'. Move to the next logical step.\n"
@@ -111,7 +106,7 @@ PLAN_INSTR = (
 def build_guide_prompt(kwargs):
     context_text = "".join([getattr(el, "text", str(el)) + "\n" for el in kwargs["context"]["texts"]])
     
-    # Safely fetch last_action with a fallback
+    # checks the last action taken none if not
     last_act = kwargs.get('last_action', 'None')
     
     text = f"{PLAN_INSTR}\n\nMANUAL:\n{context_text}\n\nLAST ACTION TAKEN: {last_act}\n\nUI ELEMENTS:\n{kwargs['ui_hint']}\n\nGOAL: {kwargs['question']}"
@@ -138,9 +133,7 @@ def build_guide_chain(retriever):
     )
 
 
-# ==========================================
-# CHAIN 3: THE EVALUATOR (Tier 3 - Dual Frame)
-# ==========================================
+####### EVALUATOR
 EVAL_INSTR = (
     "You are a strict Contrastive Evaluator verifying if a software GOAL was achieved.\n"
     "CRITICAL RULE 1: If the 'LAST ACTION TAKEN' is 'None', the goal CANNOT be complete.\n"
@@ -158,7 +151,7 @@ def build_eval_prompt(kwargs):
     text = f"{EVAL_INSTR}\n\nGOAL: {kwargs['question']}\nLAST ACTION TAKEN: {last_act}"
     content = [{"type": "text", "text": text}]
     
-    # Dual-Frame Image Injection
+    # 2 image consecutive frame injection
     if kwargs.get('previous_b64'):
         content.append({"type": "text", "text": "IMAGE 1: BEFORE ACTION"})
         content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{kwargs['previous_b64']}"}})

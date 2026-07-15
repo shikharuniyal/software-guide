@@ -10,7 +10,7 @@ app = FastAPI(title="ONGC Manual RAG")
 state = {}
 
 def get_chains():
-    """LAZY LOADER: Builds the 3 AI chains only when needed."""
+    #lazy loader approach to avoid reloading by loading chains on demand and handling state in memory
     if "guide_chain" not in state:
         print("[SYSTEM] Building AI Chains...")
         retriever = build_retriever()
@@ -41,7 +41,7 @@ def query(q: Query):
 
 @app.post("/admin/reload")
 def reload():
-    state.clear() # Force lazy loader to rebuild on next request
+    state.clear() #lazy loader will rebuild on next request
     return {"status": "reloaded"}
 
 def _has_acted(last_action: str) -> bool:
@@ -60,7 +60,7 @@ def guide(q: GuideQuery):
 
     # Completion checks only make sense AFTER the user has taken an action.
     if acted:
-        # TIER 2: fast success cache
+        # fast success cache
         if check_success_state(state_hash):
             print("[TIER 2] Cache Hit! Goal is complete.")
             return {
@@ -69,7 +69,7 @@ def guide(q: GuideQuery):
                 "instruction": "Task completed successfully.",
             }
 
-        # TIER 3: evaluator VLM — did the LAST action complete the goal?
+        #evaluator VLM checks if the action is the valid goal
         print("[TIER 3] Verifying screen state via VLM (dual-frame)...")
         eval_res = eval_chain.invoke({
             "question": q.question,
@@ -88,10 +88,10 @@ def guide(q: GuideQuery):
     else:
         print("planning now")
 
-    # PLANNER: what is the next step?
+    # PLANNER makes next node
     cached_plan = get_cached_action(state_hash)
     if q.last_action_failed:
-        print("[GUARDRAIL] Client reported UI didn't change. Forcing replan...")
+        print("[GUARDRAIL] Client UI didnt change")
         cached_plan = None
     if cached_plan:
         print("[TIER 2] Using cached action.")

@@ -177,7 +177,7 @@ def show_success_screen(message):
     panel.ok_btn.clicked.connect(loop.quit)
     panel.show(); loop.exec_(); panel.close(); app.processEvents()
 
-# --- THE INTENT-GATED AUTO-OBSERVER ENGINE ---
+#auto observation here
 def show_step_and_wait(box, instruction, n, total, initial_img, initial_ui_hash):
     res = {"action": "timeout"}
     loop = QEventLoop()
@@ -190,15 +190,15 @@ def show_step_and_wait(box, instruction, n, total, initial_img, initial_ui_hash)
     panel.stop_btn.clicked.connect(lambda: finish("stop"))
     panel.force_btn.clicked.connect(lambda: finish("fail"))
 
-    # 1. Hardware Event Hooks (Listen for Physical Intent)
+    #listening the hardware changes
     user_acted = [False]
 
     def on_click(x, y, button, pressed):
-        if not pressed: # Triggers when mouse is released (covers clicks AND drags)
+        if not pressed: # mouse release trig
             user_acted[0] = True
 
     def on_key_release(key):
-        # Triggers if user types in a textbox and hits Enter/Tab
+        #enter key trig
         if key in [keyboard.Key.enter, keyboard.Key.tab]:
             user_acted[0] = True
 
@@ -213,11 +213,11 @@ def show_step_and_wait(box, instruction, n, total, initial_img, initial_ui_hash)
         if not user_acted[0]:
             return
 
-        print("\n[HARDWARE EVENT]: Click/Drag detected. Verifying UI state...")
+        print("\n[preemptive action] Click/Drag detected. Verifying UI state")
         # removing overlay before mss
        
         overlay.hide(); panel.hide(); app.processEvents()
-        time.sleep(0.6)  # let the software render (dropdowns, new windows, etc.)
+        time.sleep(0.6)
 
         new_img, _ = capture_screen()
 

@@ -1,5 +1,9 @@
 # Software Guide — Local Manual Assistant
 
+> ⭐ If you find this project useful, please consider starring the repo. This
+> is the **first fully working iteration** and the project is still under
+> active development — issues and pull requests are very welcome.
+
 A fully **local, offline** assistant built from a software manual (PDF).
 
 - **Ask (web):** type a question, get a step-by-step answer + a workflow diagram.
