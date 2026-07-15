@@ -135,7 +135,7 @@ wherever you want the project to live on the server.
 ssh user@server "mkdir -p /opt/software-guide"
 
 # 2. project files (small) — everything except models/ and images/
-scp -r client.py docker-compose.yml README.md RUN.md SERVER.md `
+scp -r client.py docker-compose.yml README.md `
     .env.example .gitignore manuals services `
     user@server:/opt/software-guide/
 
