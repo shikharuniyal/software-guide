@@ -88,24 +88,43 @@ docker save -o images/ingestion.tar  ongc-rag-ingestion:latest
 
 ### Transfer to the server over SSH
 
-From the build machine, copy the three things to the server with `rsync` over SSH
-(`rsync -P` shows progress and can resume if the connection drops — important for
-the ~6 GB `models/` and ~10 GB `images/`). Replace `user@server` with your login
-and `/opt/software-guide` with wherever you want it on the server.
+Setup assumed here: **build machine = Windows**, **server = Linux**. Windows
+ships an SSH client (`ssh`/`scp`) out of the box, so no extra install is needed.
+Replace `user@server` with your login and IP, and `/opt/software-guide` with
+wherever you want the project to live on the server.
 
-```bash
-# 1. project files (small)
-rsync -avP --exclude models --exclude images ./  user@server:/opt/software-guide/
+**Windows (PowerShell) → Linux server, using `scp`:**
 
-# 2. the model weights (~6 GB)
-rsync -avP models/   user@server:/opt/software-guide/models/
+```powershell
+# from inside the software-guide folder
 
-# 3. the docker image tarballs (~10 GB)
-rsync -avP images/   user@server:/opt/software-guide/images/
+# 1. create the destination folder on the server first
+ssh user@server "mkdir -p /opt/software-guide"
+
+# 2. project files (small) — everything except models/ and images/
+scp -r client.py docker-compose.yml README.md RUN.md SERVER.md `
+    .env.example .gitignore manuals services `
+    user@server:/opt/software-guide/
+
+# 3. the model weights (~6 GB)
+scp -r models user@server:/opt/software-guide/
+
+# 4. the docker image tarballs (~10 GB)
+scp -r images user@server:/opt/software-guide/
 ```
 
-> No `rsync` on the server? Use `scp -r` instead, e.g.
-> `scp -r models images user@server:/opt/software-guide/` (no resume on drop).
+> `scp` has no resume/progress-per-file by default. For the big transfers (3–4
+> above) you can add `-C` to compress in transit (`scp -rC ...`), which often
+> helps on slower links.
+
+**Linux / macOS / WSL → Linux server, using `rsync`** (resumable, shows
+progress — nicer for the big folders if you have rsync available):
+
+```bash
+rsync -avP --exclude models --exclude images ./  user@server:/opt/software-guide/
+rsync -avP models/   user@server:/opt/software-guide/models/
+rsync -avP images/   user@server:/opt/software-guide/images/
+```
 
 ---
 
