@@ -25,6 +25,7 @@ everything else is CPU.
 ---
 
 ## Contents
+0. [Quick start — clone and run](#0-quick-start--clone-and-run)
 1. [What you need](#1-what-you-need)
 2. [The 3 things you transfer to the server](#2-the-3-things-you-transfer-to-the-server)
 3. [Part A — On an internet-connected machine (build once)](#3-part-a--on-an-internet-connected-machine-build-once)
@@ -34,6 +35,34 @@ everything else is CPU.
 7. [Part E — The desktop guide (Phase 2)](#7-part-e--the-desktop-guide-phase-2)
 8. [Everyday commands](#8-everyday-commands)
 9. [Configuration](#9-configuration)
+
+---
+
+## 0. Quick start — clone and run
+
+```bash
+git clone https://github.com/shikharuniyal/software-guide.git
+cd software-guide
+```
+
+This gets you the code only — the AI model weights (`models/`, ~6 GB) are **not**
+in git and must be supplied separately (see [What you need](#1-what-you-need)).
+Once `models/` is in place:
+
+```bash
+# 1. Install — build the images and start the stack
+docker compose up -d --build
+
+# 2. Use — load a manual, then ask it questions
+docker compose run --rm ingestion /data/manuals/Word_manual.pdf
+curl -X POST http://localhost:8000/admin/reload
+# open http://localhost:8080 in a browser
+```
+
+That's the whole install-and-use flow on a machine **with internet and a GPU**.
+Deploying to an **air-gapped Linux server** (no internet on the server itself)
+needs one extra step — building the images elsewhere and transferring them
+over — covered in full starting at [Part A](#3-part-a--on-an-internet-connected-machine-build-once).
 
 ---
 
